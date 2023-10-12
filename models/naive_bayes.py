@@ -1,4 +1,3 @@
-from sklearn.preprocessing import LabelEncoder
 from enum import Enum
 import pandas as pd
 import numpy as np
@@ -20,7 +19,7 @@ class NaiveBayes:
     # calculate prior probabilities
     self.prior = {}
     for y in y_fit.unique():
-      prior[y] = len(y_fit[y_fit == y]) / len(y_fit)
+      self.prior[y] = len(y_fit[y_fit == y]) / len(y_fit)
     
     # calculate likelihood probabilities
     self.likelihood = {}
