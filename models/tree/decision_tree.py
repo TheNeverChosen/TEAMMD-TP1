@@ -54,7 +54,7 @@ class DecisionTree():
         self.root = build_tree(X,y)
     
     def predict(self, X):    
-        y_pred = np.empty(len(X), dtype=np.object_)
+        y_pred = list()
         if type(X) == pd.DataFrame:
             X = X.to_numpy()
             
@@ -77,7 +77,7 @@ class DecisionTree():
             predictions = predict_example(example, self.root)
             prediction = max(predictions)
             
-            y_pred[i] = prediction
+            y_pred.append(prediction)
         return y_pred
     
     def print_tree(self) -> str:
