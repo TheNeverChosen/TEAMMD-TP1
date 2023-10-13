@@ -10,6 +10,9 @@ class Leaf:
     def __init__(self, labels):
         
         self.predictions = dict(zip(*np.unique(labels, return_counts=True)))
+        self.prediction = max(self.predictions)
+    def __repr__(self) -> str:
+        return str(self.prediction)
 
 class DecisionNode:
     """A Decision Node asks a question.
