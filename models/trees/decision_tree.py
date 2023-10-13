@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from utils import find_best_split, partition, node_to_string
-from base import DecisionNode, Leaf
+from .utils import find_best_split, partition, node_to_string
+from .base import DecisionNode, Leaf
    
 def build_tree(X, y):
     """Builds the tree.
@@ -80,12 +80,16 @@ class DecisionTree():
     def fit(self, X, y):
         if type(X) == pd.DataFrame:
             self.feature_names = X.columns
+            X = X.to_numpy()
         else:
             self.feature_names = range(X.shape[1])
         self.tree = build_tree(X,y)
     
-    def predict(self, X: np.ndarray):    
+    def predict(self, X):    
         y_pred = np.empty(len(X), dtype=np.object_)
+        if type(X) == pd.DataFrame:
+            X = X.to_numpy()
+        
         for i, example in enumerate(X):
             predictions = predict_example(example, self.tree)
             prediction = max(predictions)
