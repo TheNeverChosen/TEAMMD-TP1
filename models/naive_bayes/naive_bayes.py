@@ -62,6 +62,8 @@ class NaiveBayes:
           prob *= self._gaussian(x_row[column], self.likelihood[column][y]['mean'], self.likelihood[column][y]['std'])
         elif self.types[i] == NBDataType.MULTINOMIAL:
           prob *= self.likelihood[column][y][x_row[column]]
+      
+      # TODO: TEM UM ERRO ACONTECENDO AQUI, AJEITA PLEASE
       print(prob, max_prob)
       if prob > max_prob:
         max_prob = prob
