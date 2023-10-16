@@ -7,9 +7,7 @@ class NBDataType(Enum):
   GAUSSIAN = 1
   MULTINOMIAL = 2
 
-# categorical naive bayes
 class NaiveBayes:
-  # types: list of NBDataType, one for each column in x
   def __init__(self, types : list[NBDataType]):
     self.types = types
     self.prior = None
@@ -49,7 +47,6 @@ class NaiveBayes:
   def _gaussian(self, x, mean, std):
     return (1 / (std * np.sqrt(2 * np.pi))) * np.exp(-((x - mean) ** 2) / (2 * (std ** 2)))
 
-  # predict y, given x
   def predict_row(self, x_row):
     y_predict = None
     max_prob = 0
@@ -70,7 +67,6 @@ class NaiveBayes:
         y_predict = y
     return y_predict
 
-  # predict x, returning y, using prior and likelihood calculated in fit
   def predict(self, x_predict : pd.DataFrame):
     y_predict = []
     for index, row in x_predict.iterrows():

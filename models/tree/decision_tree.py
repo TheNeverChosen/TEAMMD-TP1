@@ -1,7 +1,3 @@
-import numpy as np
-import pandas as pd
-from .utils import find_best_split, partition, node_to_string
-from .base import DecisionNode, Leaf
 import graphviz
 
 class DecisionTree():
@@ -17,16 +13,10 @@ class DecisionTree():
             self.feature_names = range(X.shape[1])
             
         def build_tree(X, y):
-            """Builds the tree.
 
-            Rules of recursion: 1) Believe that it works. 2) Start by checking
-            for the base case (no further information gain). 3) Prepare for
-            giant stack traces.
-            """
-
-            # Try partitioing the dataset on each of the unique attribute,
-            # calculate the information gain,
-            # and return the question that produces the highest gain.
+            # Partitions the dataset on every attribute,
+            # calculates the information gain,
+            # and returns the question that produces the highest gain.
             gain, feature, value = find_best_split(X, y)
 
             # Base case: no further info gain
@@ -59,7 +49,6 @@ class DecisionTree():
             X = X.to_numpy()
             
         def predict_example(example, node):
-            """See the 'rules of recursion' above."""
 
             # Base case: we've reached a leaf
             if isinstance(node, Leaf):
