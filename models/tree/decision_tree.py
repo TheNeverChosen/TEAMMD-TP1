@@ -121,25 +121,16 @@ class DecisionTree():
 
 
 if __name__ == "__main__":
-    fruits_dataset = pd.DataFrame([
-    ['Green', 3, 'Apple'],
-    ['Yellow', 3, 'Apple'],
-    ['Red', 1, 'Grape'],
-    ['Red', 1, 'Grape'],
-    ['Yellow', 3, 'Lemon'],
-    ], columns=['color', 'diameter', 'label'])
-
-    X = fruits_dataset.iloc[:, :-1]
-    y = fruits_dataset.iloc[:, -1]
+    from sklearn.datasets import load_iris
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import accuracy_score
     
+    X, y = load_iris(return_X_y=True)
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, random_state=42)
+
     tree = DecisionTree()
     tree.fit(X, y)
     y_pred = tree.predict(X)
     
-    root = tree.root
-    print(node_to_string(root, X.columns))
-    print(str(root.true_branch))
-    print(node_to_string(root.false_branch, X.columns))
-    print(str(root.false_branch.true_branch))
-    print(str(root.false_branch.false_branch))
-    tree.print_tree()
+    
