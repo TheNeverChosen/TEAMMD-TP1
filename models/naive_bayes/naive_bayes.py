@@ -1,11 +1,11 @@
-from enum import Enum
-import pandas as pd
 import numpy as np
+import pandas as pd
+
+from enum import Enum
 
 class NBDataType(Enum):
   CATEGORICAL = 0
   GAUSSIAN = 1
-  MULTINOMIAL = 2
 
 class NaiveBayes:
   def __init__(self, types : list[NBDataType]):
@@ -14,61 +14,61 @@ class NaiveBayes:
     self.likelihood = None
 
   def fit(self, X, y):
+    #USING ONLY NUMPY.NDARRAY
     if type(X) == pd.DataFrame:
-      features = X.columns
-    else:
-      features = np.arange(X.shape[1])
-      
-    if len(features) != len(self.types):
+      X = X.to_numpy()
+    if type(y) == pd.Series:
+      y = y.to_numpy()
+    if type(X) != np.ndarray or type(y) != np.ndarray:
+      raise TypeError(f"X and y must be numpy.ndarray or pandas.DataFrame and pandas.Series, respectively")
+
+    if len(self.types) != X.shape[1]:
       raise TypeError(f"The number of types passed ({len(self.types)}) does not correspond to the number of columns in the dataset ({len(features)})")
     
     # calculate prior probabilities
     labels, counts = np.unique(y, return_counts=True)
-    self.prior = dict(zip(*(labels, counts/ len(y))))
-    
+    self.prior = dict(zip(labels, counts / len(y)))
+
     # calculate likelihood probabilities
     self.likelihood = {}
-    for i, column in enumerate(features):
-      self.likelihood[column] = {}
-      for label in np.unique(y):
-        self.likelihood[column][label] = {}
-        if self.types[i] == NBDataType.CATEGORICAL:
-          for x in np.unique(X[column]):
-            self.likelihood[column][label][x] = len(X[(X[column] == x) & (y == label)]) / len(X[y == label])
-            #likelihood[column][y][x] =  P(Xi|y) | Xi in 'column'
-        elif self.types[i] == NBDataType.GAUSSIAN:
-          self.likelihood[column][label]['mean'] = np.mean(X[y == label]) # mean of column
-          self.likelihood[column][label]['std'] = np.std(X[y == label])   # std of column
-        elif self.types[i] == NBDataType.MULTINOMIAL:
-          for x in np.unique(X[column]):
-            self.likelihood[column][label][x] = len(X[(X[column] == x) & (y == label)]) / len(X[y == label])
 
-  # gaussian probability density function
-  def _gaussian(self, x, mean, std):
-    return (1 / (std * np.sqrt(2 * np.pi))) * np.exp(-((x - mean) ** 2) / (2 * (std ** 2)))
+    for label in self.prior.keys():
+      self.likelihood[label] = {}
+      for i in range(X.shape[1]):
+        if self.types[i] == NBDataType.GAUSSIAN:
+          self.likelihood[label][i] = {
+            "mean": X[y == label, i].mean(),
+            "std": X[y == label, i].std()
+          }
+        elif self.types[i] == NBDataType.CATEGORICAL:
+          self.likelihood[label][i] = np.unique(X[y == label, i], return_counts=True)[1] / len(X[y == label, i])
+        else:
+          raise TypeError(f"Invalid type {self.types[i]}")
 
+  def gaussian(self, x, mean, std):
+    return 1 / (np.sqrt(2 * np.pi) * std) * np.exp(-((x - mean) ** 2) / (2 * std ** 2))
+  
   def predict_row(self, x_row):
-    y_predict = None
-    max_prob = 0
-    for y in self.prior.keys():
-      prob = self.prior[y]
-      for i, column in enumerate(x_row.index):
-        if self.types[i] == NBDataType.CATEGORICAL:
-          prob *= self.likelihood[column][y][x_row[column]]
-        elif self.types[i] == NBDataType.GAUSSIAN:
-          prob *= self._gaussian(x_row[column], self.likelihood[column][y]['mean'], self.likelihood[column][y]['std'])
-        elif self.types[i] == NBDataType.MULTINOMIAL:
-          prob *= self.likelihood[column][y][x_row[column]]
-      
-      # TODO: TEM UM ERRO ACONTECENDO AQUI, AJEITA PLEASE
-      print(prob, max_prob)
-      if prob > max_prob:
-        max_prob = prob
-        y_predict = y
-    return y_predict
+    # calculate posterior probabilities
+    posterior = {}
+    for label in self.prior.keys():
+      posterior[label] = self.prior[label]
+      for i in range(len(x_row)):
+        if self.types[i] == NBDataType.GAUSSIAN:
+          posterior[label] *= self.gaussian(x_row[i], self.likelihood[label][i]["mean"], self.likelihood[label][i]["std"])
+        elif self.types[i] == NBDataType.CATEGORICAL:
+          posterior[label] *= self.likelihood[label][i][x_row[i]]
+        else:
+          raise TypeError(f"Invalid type {self.types[i]}")
+    
+    # return the label with the highest posterior probability
+    return max(posterior, key=posterior.get)
+  
+  def predict(self, X):
+    #USING ONLY NUMPY.NDARRAY
+    if type(X) == pd.DataFrame:
+      X = X.to_numpy()
+    if type(X) != np.ndarray:
+      raise TypeError(f"X must be numpy.ndarray or pandas.DataFrame")
 
-  def predict(self, x_predict : pd.DataFrame):
-    y_predict = []
-    for index, row in x_predict.iterrows():
-      y_predict.append(self.predict_row(row))
-    return y_predict
+    return np.array([self.predict_row(x_row) for x_row in X])
